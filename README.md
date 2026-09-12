@@ -12,14 +12,30 @@ Au démarrage, le lecteur se place sur le premier incident. `Espace` lit,
 `←`/`→` avancent d'un événement, les boutons `−4×` / `−1×` rejouent à l'envers,
 `V` bascule ruche ↔ rivière.
 
-**Sur une vraie session**, depuis la racine du dépôt :
+**Sur une vraie session**, depuis la racine de `coachingia` (dépôt frère) :
 
 ```powershell
-dotnet run --project src/CoachingIA.Cli -- exporter-run --out web/ruche/public/runs
+dotnet run --project src/CoachingIA.Cli -- exporter-run --out ..\ruche\public\runs
 ```
 
-puis `http://localhost:5173/?run=runs/<identifiant>.jsonl`, ou simplement le
-glisser-déposer sur la page (bouton « Ouvrir un run… » pour les mêmes effets).
+puis `http://localhost:5173/?run=runs/<identifiant>.events.jsonl`, ou simplement
+le glisser-déposer sur la page (bouton « Ouvrir un run… » pour les mêmes effets).
+
+**Les évals dans la ruche.** Un `verdicts.jsonl` (une ligne
+`{"task_id", "pass", "reason"}` par cas, format `harnais/eval/schemas/verdicts.schema.json`)
+colore le run dont le `task` correspond ; la raison s'affiche au survol du badge.
+
+```
+?run=runs/run-t-03-001.events.jsonl&eval=runs/judge.jsonl
+```
+
+ou un fichier `*.verdicts.jsonl` glissé sur la page. Pour voir les runs des
+oracles du harnais sans attendre une session réelle :
+
+```bash
+python3 ../harnais/eval/deplier_runs.py ../harnais/eval/fixtures/runs_tasks.jsonl --out public/runs
+cp ../harnais/eval/fixtures/judge.jsonl public/runs/judge.verdicts.jsonl
+```
 
 Options de l'export : `--session <début d'identifiant>`, `--tout`, `--contenu`.
 Sans `--contenu`, aucun texte de prompt ni de sortie d'outil n'entre dans le
@@ -30,7 +46,7 @@ même coupure que `CaptureContent: false` côté harnais, et c'est le défaut.
 
 ## Le principe
 
-**Le projet, c'est le journal d'événements. La 3D n'en est qu'un lecteur.**
+**Le projet, c'est le journal d'événements — un contrat du harnais. La 3D n'en est qu'un lecteur ; chaque producteur (coachingia, oneiros, deplier_runs.py) l'écrit, Ruche ne fait que lire.**
 
 Si le journal est bon, on le rend dans Three.js aujourd'hui, dans Unity l'an
 prochain, dans un terminal en attendant — et on rejoue des runs d'il y a six
@@ -62,6 +78,13 @@ gravées :
 | `t` | l'horloge **vécue**, pour le mode « temps réel ». Deux vérités différentes, on doit pouvoir basculer. |
 | `ref` | le gros (prompt, sortie, diff) par empreinte, hors journal. Sinon le journal fait 500 Mo et le lecteur ne le charge pas. Bonus : deux runs qui envoient le même contexte partagent le blob — la déduplication devient une mesure. |
 | `origin` | `observed` (jamais recalculé) / `derived` (les drapeaux) / `human`. Mélanger les trois interdit de **rejouer un vieux run avec un détecteur neuf** — l'usage le plus utile. |
+
+**Le schéma est la source, ce fichier est le miroir.** Le contrat vit dans
+`harnais/eval/schemas/run_events.schema.json` ; `test/contrat.test.ts` échoue
+si la liste des `kind` diffère dans un sens ou dans l'autre, ou si la démo ne
+passe pas le schéma. Sans le harnais à côté, le test est sauté avec un message.
+La `policy` de l'en-tête a la forme de celle du contrat de run : c'est ce qui
+permet à `harnais/eval/plier_evenements.py` de la recopier sans l'inventer.
 
 **Une limite à connaître** : exporté depuis un transcript, `seq` est *dérivé*
 des horodatages — le fichier de Claude Code ne porte aucun compteur global. Le
@@ -235,10 +258,12 @@ un tampon circulaire borné côté serveur. `src/core/sources.ts` contient déj�
 
 ### Le contrat en double
 
-`src/core/events.ts` (ici) et `Transcripts/RunEvent.cs` (côté C#) décrivent la
-même chose. Deux définitions dérivent toujours — la suite `RunExportTests`
-compare les deux listes de `kind` et échoue à la moindre divergence. C'est le
-même geste que « un outil est un type », appliqué à l'événement.
+`harnais/eval/schemas/run_events.schema.json` (la source), `src/core/events.ts`
+(ici) et `Transcripts/RunEvent.cs` (côté C#) décrivent la même chose. Deux
+définitions dérivent toujours ; trois, à coup sûr. Deux tests s'y opposent :
+`test/contrat.test.ts` compare `events.ts` au schéma, `RunExportTests` compare
+le C# à `events.ts`. C'est le même geste que « un outil est un type », appliqué
+à l'événement.
 
 ---
 
