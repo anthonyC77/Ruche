@@ -21,7 +21,12 @@ export function parseVerdicts(text: string): Verdict[] {
   const out: Verdict[] = [];
   const lines = text.split('\n').filter(l => l.trim().length > 0);
   lines.forEach((l, i) => {
-    const v = JSON.parse(l) as Partial<Verdict>;
+    let v: Partial<Verdict>;
+    try {
+      v = JSON.parse(l) as Partial<Verdict>;
+    } catch {
+      throw new Error(`verdict ${i + 1} : JSON illisible`);
+    }
     if (typeof v.task_id !== 'string' || v.task_id.length === 0) throw new Error(`verdict ${i + 1} : task_id manquant`);
     if (typeof v.pass !== 'boolean') throw new Error(`verdict ${i + 1} : pass doit être un booléen`);
     if (typeof v.reason !== 'string' || v.reason.trim().length === 0) {

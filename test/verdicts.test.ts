@@ -32,4 +32,8 @@ describe('verdicts', () => {
     expect(() => parseVerdicts('{"task_id": "T-01", "pass": "oui", "reason": "x"}')).toThrow(/booléen/);
     expect(() => parseVerdicts('{"pass": true, "reason": "x"}')).toThrow(/task_id/);
   });
+
+  it('une ligne de verdict illisible dit son numéro', () => {
+    expect(() => parseVerdicts('{oops')).toThrow(/illisible/);
+  });
 });
