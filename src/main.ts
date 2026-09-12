@@ -11,8 +11,10 @@
  *                                   └──▶ ui (panneaux, transport)
  *
  * Trois sources possibles, même suite :
- *   - ?run=<chemin>        un fichier produit par `coachingia exporter-run`
- *   - un .jsonl déposé     glisser-déposer, ou le bouton « Ouvrir un run »
+ *   - ?run=<chemin>        un fichier .events.jsonl (exporter-run, ou deplier_runs.py du harnais)
+ *   - ?eval=<chemin>       un verdicts.jsonl : le run prend la couleur de son verdict
+ *   - un .jsonl déposé     glisser-déposer, ou le bouton « Ouvrir un run » ;
+ *                          un *.verdicts.jsonl déposé s'applique au run courant
  *   - rien                 le run de démonstration
  */
 
@@ -27,7 +29,9 @@ import { Actor } from './view3d/actors.js';
 import { SpanField } from './view3d/spans.js';
 import { LinkField } from './view3d/links.js';
 import { wireTransport } from './ui/transport.js';
-import { renderAgents, renderAlert, renderLog } from './ui/panels.js';
+import { renderAgents, renderAlert, renderLog, renderVerdict } from './ui/panels.js';
+import { loadVerdicts, parseVerdicts, taskOf, verdictFor } from './core/verdicts.js';
+import type { Verdict } from './core/verdicts.js';
 import type { State } from './core/reducer.js';
 import type { RunFile } from './core/events.js';
 
@@ -39,6 +43,14 @@ const $ = <T extends HTMLElement>(id: string): T => {
 
 /** Ce qu'il faut défaire avant de charger un autre run. */
 let demonter: (() => void) | null = null;
+
+/** Les verdicts (?eval= ou déposés) et le run qu'ils colorent. Ruche ne juge pas, elle montre. */
+let verdicts: Verdict[] = [];
+let runCourant: RunFile | null = null;
+
+function appliquerVerdict(): void {
+  renderVerdict($('verdict'), $('task'), runCourant ? verdictFor(verdicts, taskOf(runCourant)) : null);
+}
 
 /**
  * Le canevas est remplacé plutôt que réutilisé : un WebGLRenderer ne se
@@ -59,6 +71,7 @@ function afficherErreur(message: string): void {
 
 function monter(run: RunFile, source: string): void {
   demonter?.();
+  runCourant = run;
   $('erreur').hidden = true;
 
   /* 1 · les détecteurs — dérivés, recalculables, fusionnés dans le flux.
@@ -176,6 +189,7 @@ function monter(run: RunFile, source: string): void {
 
   stage.resize();
   refresh();
+  appliquerVerdict();
 
   demonter = () => {
     debrancherTransport();
@@ -206,6 +220,19 @@ function depuisTexte(texte: string, nom: string): void {
   }
 }
 
+/** Un fichier déposé : des verdicts s'il se termine en .verdicts.jsonl, un run sinon. */
+function deposer(f: File): void {
+  f.text().then(t => {
+    if (!f.name.endsWith('.verdicts.jsonl')) { depuisTexte(t, f.name); return; }
+    try {
+      verdicts = parseVerdicts(t);
+      appliquerVerdict();
+    } catch (err: unknown) {
+      afficherErreur(`${f.name} illisible : ${String(err)}`);
+    }
+  });
+}
+
 /* glisser-déposer sur toute la page, plus un bouton pour ceux qui ne devinent pas */
 addEventListener('dragover', e => { e.preventDefault(); document.body.classList.add('drop'); });
 addEventListener('dragleave', () => document.body.classList.remove('drop'));
@@ -213,17 +240,26 @@ addEventListener('drop', e => {
   e.preventDefault();
   document.body.classList.remove('drop');
   const f = e.dataTransfer?.files?.[0];
-  if (!f) return;
-  f.text().then(t => depuisTexte(t, f.name));
+  if (f) deposer(f);
 });
 
 const picker = document.getElementById('file');
 if (picker instanceof HTMLInputElement) {
   picker.addEventListener('change', () => {
     const f = picker.files?.[0];
-    if (f) f.text().then(t => depuisTexte(t, f.name));
+    if (f) deposer(f);
   });
 }
 
-const demande = new URLSearchParams(location.search).get('run');
-void depuisUrl(demande ?? '/demo-run.jsonl');
+const params = new URLSearchParams(location.search);
+void (async () => {
+  await depuisUrl(params.get('run') ?? '/demo-run.jsonl');
+  const evalUrl = params.get('eval');
+  if (!evalUrl) return;
+  try {
+    verdicts = await loadVerdicts(evalUrl);
+    appliquerVerdict();
+  } catch (err: unknown) {
+    afficherErreur(`${evalUrl} illisible : ${String(err)}`);
+  }
+})();

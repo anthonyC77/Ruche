@@ -100,6 +100,9 @@ canvas#stage{display:block;width:100%;height:100%}
 .pick:focus-within{outline:2px solid var(--accent-hi);outline-offset:2px}
 .src{font-size:10.5px;color:var(--ink3);max-width:34ch;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
+.verdict{font-family:var(--mono);font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:4px;cursor:help;white-space:nowrap}
+.verdict.pass,.task.pass{color:#6fd39a;border-color:#6fd39a}
+.verdict.fail,.task.fail{color:var(--bad);border-color:var(--bad)}
 body.drop{outline:2px dashed var(--accent);outline-offset:-8px}
 #erreur:not([hidden]){position:absolute;inset:46px 16px 16px;margin:0;padding:16px;overflow:auto;
   border:1px solid color-mix(in srgb,var(--bad) 55%,transparent);border-radius:4px;

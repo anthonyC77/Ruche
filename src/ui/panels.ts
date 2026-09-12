@@ -3,6 +3,7 @@
 
 import { STATE_COLOR, STATE_LABEL } from '../view3d/actors.js';
 import type { State } from '../core/reducer.js';
+import type { Verdict } from '../core/verdicts.js';
 
 const esc = (s: unknown): string =>
   String(s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]!));
@@ -64,4 +65,17 @@ export function renderLog(el: HTMLElement, s: State, cursor: number, h: PanelHan
   for (const b of el.querySelectorAll<HTMLElement>('[data-seq]')) {
     b.onclick = () => h.onSelectSeq(Number(b.dataset['seq']));
   }
+}
+
+/** Le verdict du run courant : couleur sur le badge et sur le titre, raison au survol. */
+export function renderVerdict(badge: HTMLElement, task: HTMLElement, v: Verdict | null): void {
+  badge.classList.remove('pass', 'fail');
+  task.classList.remove('pass', 'fail');
+  if (!v) { badge.hidden = true; badge.textContent = ''; badge.title = ''; return; }
+  const cls = v.pass ? 'pass' : 'fail';
+  badge.hidden = false;
+  badge.textContent = v.pass ? '✔ juge : réussi' : '✘ juge : échec';
+  badge.title = v.reason;
+  badge.classList.add(cls);
+  task.classList.add(cls);
 }
