@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ruche</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Ruche</h1>
+      <span id="task" class="task"></span>
+      <label class="pick">Ouvrir un run…<input id="file" type="file" accept=".jsonl,.json"></label>
+      <span id="source" class="mono src"></span>
+      <span id="clock" class="mono"></span>
+    </header>
+
+    <div class="main">
+      <aside class="rail">
+        <div class="secthead">Agents</div>
+        <div id="agents"></div>
+      </aside>
+
+      <div class="stagewrap">
+        <canvas id="stage"></canvas>
+        <pre id="erreur" hidden></pre>
+        <div class="views">
+          <button data-view="ruche" class="on">Ruche</button>
+          <button data-view="riviere">Rivière</button>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="secthead">Détecteurs</div>
+        <div id="alert" hidden></div>
+        <div class="secthead">Journal</div>
+        <div id="log"></div>
+      </aside>
+    </div>
+
+    <div class="transport">
+      <input id="scrub" type="range" min="0" max="0" step="0.01" value="0" aria-label="Position dans le run">
+      <div class="ctrls">
+        <button data-rate="-4">−4×</button>
+        <button data-rate="-1">−1×</button>
+        <button id="stepB" title="événement précédent (←)">⟨</button>
+        <button id="play" title="lire / pause (espace)">▶</button>
+        <button id="stepF" title="événement suivant (→)">⟩</button>
+        <button data-rate="0.25">¼×</button>
+        <button data-rate="1" class="on">1×</button>
+        <button data-rate="4">4×</button>
+        <span class="sep"></span>
+        <button id="prevFlag">↤ incident</button>
+        <button id="nextFlag">incident ↦</button>
+        <span class="spacer"></span>
+        <span id="seekcost" class="mono"></span>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
