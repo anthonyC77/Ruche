@@ -67,17 +67,28 @@ export type EventKind = RunEvent['kind'];
 export type Severity = 'low' | 'medium' | 'high';
 export type RunStatus = 'completed' | 'refused' | 'clarification' | 'failed' | 'cancelled' | 'quota_exceeded';
 
+/** Les quotas du contrat de run (harnais/eval/schemas/run_contract.schema.json) ;
+ *  `max_calls_par_agent` est le seul champ en plus, lu par les détecteurs (R5). */
 export interface Quotas {
-  max_calls_par_agent: number;
+  max_calls: number;
+  max_calls_par_agent?: number;
   max_tokens: number;
   max_wall_clock_ms: number;
   max_eur: number;
 }
 
+export interface Identity {
+  principal: string;
+  si_role?: string;
+}
+
+/** La même forme que `policy` du contrat de run : c'est ce qui permet à
+ *  plier_evenements.py de la recopier sans l'inventer. */
 export interface RunPolicy {
   agent: string;
-  allowed_tools?: string[];
+  allowed_tools: string[];
   quotas: Quotas;
+  identity: Identity;
 }
 
 export interface AgentDecl {

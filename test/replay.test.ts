@@ -17,7 +17,7 @@ import { blankState, reduce } from '../src/core/reducer.js';
 import type { RunEvent } from '../src/core/events.js';
 
 const run = parseJsonl(readFileSync('public/demo-run.jsonl', 'utf8'));
-const flags = detect(run.events, DEFAULT_RULES(run.policy.quotas.max_calls_par_agent));
+const flags = detect(run.events, DEFAULT_RULES(run.policy.quotas.max_calls_par_agent ?? run.policy.quotas.max_calls));
 const events: RunEvent[] = merge(run.events, flags);
 
 describe('rejeu', () => {

@@ -61,8 +61,10 @@ function monter(run: RunFile, source: string): void {
   demonter?.();
   $('erreur').hidden = true;
 
-  /* 1 · les détecteurs — dérivés, recalculables, fusionnés dans le flux */
-  const flags = detect(run.events, DEFAULT_RULES(run.policy.quotas.max_calls_par_agent));
+  /* 1 · les détecteurs — dérivés, recalculables, fusionnés dans le flux.
+     Un run déplié depuis le contrat de run n'a pas de quota par agent : le quota global fait foi. */
+  const maxCalls = run.policy.quotas.max_calls_par_agent ?? run.policy.quotas.max_calls;
+  const flags = detect(run.events, DEFAULT_RULES(maxCalls));
   const events = merge(run.events, flags);
 
   /* 2 · le moteur de rejeu */
@@ -73,7 +75,6 @@ function monter(run: RunFile, source: string): void {
   /* 3 · la scène */
   const stage = new Stage(canevasNeuf());
   const layout = buildLayout(run.agents, tl.duration);
-  const maxCalls = run.policy.quotas.max_calls_par_agent;
 
   const actors = new Map<string, Actor>();
   for (const decl of run.agents) {

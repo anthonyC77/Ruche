@@ -10,6 +10,9 @@
  * IMPORTANT : ce fichier n'émet QUE des événements observés (et l'événement
  * humain). Aucun `flag`. Les drapeaux sont produits par les détecteurs au
  * chargement — c'est la preuve qu'ils fonctionnent sur un vrai flux.
+ *
+ * Le premier événement est `run.start`, le dernier `run.end`, `seq` part de 0
+ * sans trou : c'est ce que harnais/eval/schemas/run_events.schema.json impose.
  */
 
 import { writeFileSync } from 'node:fs';
@@ -130,16 +133,18 @@ think('juge-taches', 2100, 6900, 480, 'Lire le contrat de run public, comparer a
 tool('juge-taches', 'Bash', 'python3 eval/run_tasks_eval.py --task T-07', 3100, true, 'T-07 : réussi');
 ev('agent.end', 'juge-taches', { status: 'completed' }, 50);
 think('orchestrateur', 1200, 3800, 320, 'Clore le run, écrire le contrat public');
+ev('agent.end', 'orchestrateur', { status: 'completed' }, 10);
 ev('run.end', 'orchestrateur', {
   status: 'completed',
-  totals: { ...cum, eur: +cum.eur.toFixed(4), wall_clock_ms: t, human_interventions: 1 },
+  totals: { ...cum, eur: +cum.eur.toFixed(4), wall_clock_ms: t + 400, human_interventions: 1 },
 }, 400);
-ev('agent.end', 'orchestrateur', { status: 'completed' }, 10);
 
 function POLICY() {
   return {
     agent: 'harnais-dev',
-    quotas: { max_calls_par_agent: 6, max_tokens: 80000, max_wall_clock_ms: 300000, max_eur: 0.3 },
+    allowed_tools: ['Read', 'Edit', 'Write', 'Bash'],
+    quotas: { max_calls: 36, max_calls_par_agent: 6, max_tokens: 80000, max_wall_clock_ms: 300000, max_eur: 0.3 },
+    identity: { principal: 'anthony', si_role: 'dev' },
   };
 }
 
