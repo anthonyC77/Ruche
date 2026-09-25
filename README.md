@@ -5,7 +5,7 @@ Lecteur 3D de runs agentiques : rejeu, ralenti, marche arrière, main levée.
 ```bash
 npm install
 npm run dev            # http://localhost:5173  — le run de démonstration
-npm test               # l'oracle du rejeu — 13 tests : rejeu, détecteurs, concordance, verdicts
+npm test               # l'oracle du rejeu — 14 tests : rejeu, détecteurs, concordance, verdicts
 ```
 
 Au démarrage, le lecteur se place sur le premier incident. `Espace` lit,
