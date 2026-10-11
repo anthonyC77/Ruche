@@ -253,7 +253,7 @@ if (picker instanceof HTMLInputElement) {
 
 const params = new URLSearchParams(location.search);
 void (async () => {
-  await depuisUrl(params.get('run') ?? '/demo-run.jsonl');
+  await depuisUrl(params.get('run') ?? 'demo-run.jsonl');
   const evalUrl = params.get('eval');
   if (!evalUrl) return;
   try {

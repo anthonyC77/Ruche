@@ -2,6 +2,16 @@
 
 Lecteur 3D de runs agentiques : rejeu, ralenti, marche arrière, main levée.
 
+![Maquette HUD : le codeur bute trois fois sur le même hook, ses météores se brisent sur un bouclier, la main se lève](maquettes/hud.gif)
+
+**Démo en ligne :** [le lecteur](https://anthonyc77.github.io/Ruche/) avec le run
+de démonstration, et [la maquette HUD](https://anthonyc77.github.io/Ruche/hud.html)
+du GIF ci-dessus. La maquette est la direction visuelle visée : une page autonome
+qui rejoue un run figé, pas encore portée dans le lecteur (`src/view3d/`).
+En local, elle s'ouvre par n'importe quel serveur statique
+(`python -m http.server -d maquettes`), pas par `npm run dev` : la réécriture du
+HTML par Vite casse son script intégré.
+
 ```bash
 npm install
 npm run dev            # http://localhost:5173  — le run de démonstration
